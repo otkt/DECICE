@@ -1,0 +1,7 @@
+services:
+  scheduler-controller:
+    build: .
+    env_file:
+      - .env
+    ports:
+      - "8020:8020"
