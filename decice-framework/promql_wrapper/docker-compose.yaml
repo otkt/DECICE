@@ -1,0 +1,10 @@
+services:
+  promql-wrapper:
+    build: .
+    env_file:
+      - .env
+    ports:
+      - "8050:8050"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
