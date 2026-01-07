@@ -4,3 +4,6 @@ __pycache__
 dep
 .env
 .coverage
+**.db
+models/
+src/models/
