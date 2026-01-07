@@ -721,7 +721,7 @@ class PsgcEngine:
             gpu_str = str(task_data["required_gpu"])
             requests["nvidia.com/gpu"] = gpu_str
             limits["nvidia.com/gpu"] = gpu_str
-        resources = k8s_client.V1ResourceRequirements(requests=requests, limits=limits)
+        resources = k8s_client.V1ResourceRequirements(requests=requests)
 
         main_container = k8s_client.V1Container(
             name="main-container",
