@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 set -e
 
-EXCLUDE_DIRS="slurm_client frontend deployment"
+EXCLUDE_DIRS="slurm_client deployment"
 
 for dir in */ ; do
   dir="${dir%/}"
