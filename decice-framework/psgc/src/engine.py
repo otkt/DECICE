@@ -732,6 +732,11 @@ class PsgcEngine:
         )
 
         annotations = task_data.get("annotations", {})
+        # for key value pairs in annotations...
+        for key, value in annotations.items():
+            # if any value is a not a string, convert it to a string (e.g. list or dict)
+            if not isinstance(value, str):
+                annotations[key] = json.dumps(value)
 
         hpc_context = workflow_definition.get("hpc_context", {})
         if hpc_context.get("platform_username"):
