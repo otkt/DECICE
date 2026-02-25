@@ -130,6 +130,24 @@ class WorkflowRepository:
             )
             raise
 
+    async def get_task_by_id(self, task_id: UUID) -> Optional[WorkflowTask]:
+        """
+        Retrieves a single task by its ID, including its dependencies.
+        """
+        try:
+            task_poly = with_polymorphic(WorkflowTask, "*")
+            stmt = (
+                select(task_poly)
+                .where(task_poly.id == task_id)
+                .options(selectinload(task_poly.dependencies))
+            )
+            result = await self.session.execute(stmt)
+            return result.scalar_one_or_none()
+        except SQLAlchemyError as e:
+            logger.error(f"Error fetching task {task_id}: {e}", exc_info=True)
+            raise
+
+
     async def check_task_dependencies_met(self, task: WorkflowTask) -> bool:
         """
         Checks if all dependencies for a specific task are SUCCEEDED.

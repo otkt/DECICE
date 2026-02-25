@@ -273,6 +273,16 @@ class WorkflowService:
             limit=limit,
         )
 
+    async def get_task_by_id(self, task_id: UUID) -> Optional[WorkflowTask]:
+            """
+            Retrieves a single task by its ID, including its dependencies.
+            """
+            logger.info(f"Fetching task by ID: {task_id}")
+            task = await self.repository.get_task_by_id(task_id)
+            if not task:
+                logger.warning(f"Task {task_id} not found.")
+            return task
+
 
 def get_workflow_service(
     repository: WorkflowRepository = Depends(get_workflow_repository),

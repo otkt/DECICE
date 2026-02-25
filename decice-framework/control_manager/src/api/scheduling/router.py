@@ -24,6 +24,8 @@ schedule_router = APIRouter(prefix="/schedule")
 class SchedulingRequest(BaseModel):
     id: UUID
     requirements: dict[str, Any]
+    annotations: Optional[dict[str, Any] | None] = None
+
 
     @field_serializer("id")
     def serialize_uuid(self, value: UUID) -> str:
@@ -67,21 +69,19 @@ async def request_scheduling(
     scheduling_request: SchedulingRequest,
 ):
     logger.info(f"Received scheduling decision {scheduling_request.id}")
-    # INFO: for testing
-    # target_node = "minikube-m02"
-    # return SchedulingDecisionResponse(
-    #     placements=[
-    #         TaskPlacement(
-    #             task_id=scheduling_request.id,
-    #             target_node_ids=[target_node],
-    #             strategy_used="round-robin",
-    #         )
-    #     ],
-    #     scheduling_duration_ms=123,
-    # )
+    task = await worklow_service.get_task_by_id(scheduling_request.id)
+    if not task:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Task with ID {scheduling_request.id} not found.",
+        )
+
     await worklow_service.update_task_status(
         task_id=scheduling_request.id, status=TaskStatus.SCHEDULING
     )
+    if not scheduling_request.annotations:
+        scheduling_request.annotations = task.annotations
+
     try:
         _promql_response = await promql_service.pool()
         scheduler_response = await scheduler_controller_service.schedule(
@@ -128,10 +128,20 @@ async def request_batch_scheduling(
     task_ids = [req.id for req in scheduling_requests]
     logger.info(f"Received batch scheduling decision for tasks {task_ids}")
 
-    for task_id in task_ids:
+    for req in scheduling_requests:
+        task = await worklow_service.get_task_by_id(req.id)
+        if not task:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Task with ID {req.id} not found.",
+            )
         await worklow_service.update_task_status(
-            task_id=task_id, status=TaskStatus.SCHEDULING
+            task_id=req.id, status=TaskStatus.SCHEDULING
         )
+        # Enrich request with annotations
+        if not req.annotations:
+            req.annotations = task.annotations
+
 
     try:
         _promql_response = await promql_service.pool()
