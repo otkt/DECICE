@@ -37,7 +37,7 @@ class SnapshotService:
             # fetch data
             nodes = NodeService(self.prometheus_url)
             vp_service = VertexPoolService(self.prometheus_url, nodes=nodes)
-            link_service = LinkService(self.prometheus_url)
+            link_service = LinkService(self.prometheus_url,link_interval_label="1m")
             cluster_info_service = CLusterInfoService(self.prometheus_url)
 
             logger.debug("Beginning parallel data fetch from Prometheus...")
