@@ -62,6 +62,7 @@ class HardwareRequirements(BaseModel):
 class Task(BaseModel):
     id: UUID
     requirements: HardwareRequirements
+    annotations: Optional[dict[str, Any] | None] = None
 
     @field_serializer("id")
     def serialize_uuid(self, value: UUID) -> str:

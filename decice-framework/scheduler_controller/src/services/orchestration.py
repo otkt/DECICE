@@ -5,6 +5,7 @@ from fastapi import Depends
 from clients.digital_twin import DigitalTwinClient, get_digital_twin_client
 from clients.scheduler import SchedulerClient, get_scheduler_client
 from models.models import ScheduleRequest, Task
+from utils.latency_filter import filter_schedule_request_by_device_latency
 
 logger = logging.getLogger(__name__)
 
@@ -24,11 +25,13 @@ class OrchestrationService:
 
         # Construct payload
         schedule_request = ScheduleRequest(tasks=[task], cluster=dt_state)
+        schedule_request = filter_schedule_request_by_device_latency(schedule_request)
+        print(f"Considering {schedule_request.cluster.vertexpools} for scheduling task {task.id}")
 
         # Post to Scheduler
         logger.info("Sending Digital Twin state.")
         scheduler_response = await self.scheduler_client.schedule(schedule_request)
-
+        print(f"Received scheduling response: {scheduler_response}")
         return scheduler_response
 
     async def process_scheduling_batch(self, tasks: list[Task]) -> dict:
@@ -37,11 +40,13 @@ class OrchestrationService:
 
         # Construct payload
         schedule_request = ScheduleRequest(tasks=tasks, cluster=dt_state)
+        schedule_request = filter_schedule_request_by_device_latency(schedule_request)
+        print(f"Considering {schedule_request.cluster.vertexpools} for scheduling task {task.id}")
 
         # Post to Scheduler
         logger.info("Sending Digital Twin state.")
         scheduler_response = await self.scheduler_client.schedule(schedule_request)
-
+        print(f"Received scheduling response: {scheduler_response}")
         return scheduler_response
 
 
